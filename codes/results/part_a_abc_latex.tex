@@ -1,0 +1,15 @@
+% (a) Nonlinear state-space model
+
+\dot{\mathbf x} = \left[\begin{matrix}x_{2}\\\frac{R^{2} m \left(- g \sin{\left(x_{3} \right)} + x_{1} x_{4}^{2}\right)}{J_{b} + R^{2} m}\\x_{4}\\\frac{- g m x_{1} \cos{\left(x_{3} \right)} - 2 m x_{1} x_{2} x_{4} + \tau}{J + m x_{1}^{2}}\end{matrix}\right]
+
+\mathbf y = \left[\begin{matrix}x_{1}\\x_{3}\end{matrix}\right]
+
+% (c) Jacobians at x_e = [r_e,0,0,0], tau_e = m g r_e
+
+A = \left[\begin{matrix}0 & 1 & 0 & 0\\0 & 0 & - \frac{R^{2} g m}{J_{b} + R^{2} m} & 0\\0 & 0 & 0 & 1\\- \frac{g m}{J + m r_{e}^{2}} & 0 & 0 & 0\end{matrix}\right]
+
+B = \left[\begin{matrix}0\\0\\0\\\frac{1}{J + m r_{e}^{2}}\end{matrix}\right]
+
+C = \left[\begin{matrix}1 & 0 & 0 & 0\\0 & 0 & 1 & 0\end{matrix}\right]
+
+D = \left[\begin{matrix}0\\0\end{matrix}\right]

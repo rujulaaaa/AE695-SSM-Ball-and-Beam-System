@@ -1,0 +1,61 @@
+======================================================================
+(l) FULL-STATE FEEDBACK  u = tau_e - K (x - x_e)
+======================================================================
+Design point r_e = 0.  Specifications: zeta = 0.7, wn = 2.5 rad/s
+  -> dominant poles -1.750+1.785j, -1.750-1.785j; extra poles -5, -6
+  -> expected overshoot ~ 4.6 %, t_s(2%) ~ 2.29 s
+
+Gains and closed-loop eigenvalues:
+  Pole placement                 K = [[-2.194  -1.0332  3.1146  0.6042]]
+                                 eig(A-BK) = -6.000+0.000j, -5.000+0.000j, -1.750-1.785j, -1.750+1.785j
+  Ackermann                      K = [[-2.194  -1.0332  3.1146  0.6042]]
+                                 eig(A-BK) = -6.000+0.000j, -5.000+0.000j, -1.750-1.785j, -1.750+1.785j
+  Lyapunov (Bass, β=4)           K = [[-24.3561 -12.178   16.       1.3333]]
+                                 eig(A-BK) = -11.670+0.000j, -8.000-3.670j, -8.000+3.670j, -4.330+0.000j
+  LQR (Lyapunov/Riccati)         K = [[-11.1372  -4.6953   7.3311   0.8206]]
+                                 eig(A-BK) = -6.031-3.712j, -6.031+3.712j, -3.816-4.378j, -3.816+4.378j
+
+Analytical justification:
+  * Pole placement and Ackermann: for a single-input controllable system the gain
+    that places a given set of poles is unique, so the two must agree.
+    max|K_place - K_acker| = 1.47e-14
+    Ackermann: K = [0 0 0 1] Mc^{-1} phi_d(A), phi_d(s) = prod(s - p_i).
+  * Lyapunov (Bass): solve (A + bI)P + P(A + bI)^T = B B^T with b = 4
+    (valid because -(A + bI) is Hurwitz: b > 3.670).
+    eig(P) = [  0.011471   0.219475   7.641516 121.47094 ] > 0 ;  K = B^T P^-1
+    Closed loop: (A_cl + bI)P + P(A_cl + bI)^T = -B B^T  (residual 5.4e-13)
+    so V(x) = x^T P^-1 x satisfies V_dot <= -2b V, i.e. Re eig(A - BK) < -b.
+    max Re eig(A-BK) = -4.330 < -4  ✔
+  * LQR: P from the CARE; V = x^T P x satisfies the Lyapunov equation
+    (A-BK)^T P + P(A-BK) = -(Q + K^T R K) < 0  (residual 2.8e-12), eig(P) = [  0.0536   1.9878  15.2927 205.2255]
+    Q = diag(400, 4, 25, 0.25), R = 4 (Bryson's rule)
+
+Nonlinear validation, ball released at r(0) = 0.2 m (at rest, beam level):
+controller                         t_s(2%) [s]  OS [%] max|θ| [deg] peak|δτ| [Nm]   ∫δτ² dt
+-------------------------------------------------------------------------------------------
+Pole placement                           2.748    3.31         3.24        0.4388    0.0357
+Ackermann                                2.748    3.31         3.24        0.4388    0.0357
+Lyapunov (Bass, β=4)                     1.337    0.00        15.29        4.8712    0.4945
+LQR (Lyapunov/Riccati)                   1.339    3.36        13.52        2.2274    0.1754
+
+Pole-placement controller: nonlinear vs linear closed loop
+  r(0) = 0.2 m → 0                              : max|r_nl - r_lin| = 0.0008 m, t_s = 2.75 s, OS = 3.3 %, max|θ| = 3.2 deg, peak|δτ| = 0.439 N m
+  r(0) = 0.45 m → 0 (near beam end)             : max|r_nl - r_lin| = 0.0105 m, t_s = 2.73 s, OS = 3.0 %, max|θ| = 7.8 deg, peak|δτ| = 0.987 N m
+  set-point 0 → 0.25 m (K designed at r_e = 0)  : max|r_nl - r_lin| = 0.0005 m, t_s = 2.74 s, OS = 3.3 %, max|θ| = 4.0 deg, peak|δτ| = 0.549 N m
+
+Observations:
+ * All four controllers stabilise the nonlinear plant from r(0) = 0.2 m.
+ * Pole placement and Ackermann give identical gains and identical responses.
+ * The Lyapunov (Bass) design guarantees decay faster than e^{-bt}, but it gives no
+   direct control over damping or effort. Here it is the fastest and most aggressive
+   (largest torque).
+ * LQR settles as fast as the Bass design but with less than half the peak torque and
+   about a third of the control energy: optimising a cost beats merely enforcing a
+   decay rate.
+ * Pole placement is the gentlest (smallest torque, 3 deg of tilt). Its settling time
+   (2.75 s) is a little longer than the 2nd-order estimate (2.29 s) because the
+   extra poles at -5 and -6 are not far enough away to be negligible.
+ * Linear and nonlinear closed loops agree closely (within 1 mm from 0.2 m, about 1 cm
+   from 0.45 m). The gap grows with the offset as sin θ, r θ_dot^2 and the r-dependent
+   inertia become noticeable. The same gain also works at r_e = 0.25 m, where A41 and
+   B4 differ by only about 14 % from their values at r_e = 0 (part c).

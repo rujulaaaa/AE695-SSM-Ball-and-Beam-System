@@ -1,0 +1,94 @@
+======================================================================
+(m) FULL-ORDER (LUENBERGER) OBSERVERS
+======================================================================
+xhat_dot = A xhat + B u + L (y - C xhat);  error e = x - xhat obeys e_dot = (A - LC) e
+Desired observer poles [-10.0, -11.0, -12.0, -13.0]: about 5x faster than the dominant
+controller poles (-1.75 ± 1.79j), so the estimate settles before the controller acts.
+Duality: an observer for (A, C) is a controller for (A^T, C^T), so L = K_dual^T.
+
+  pole placement (y = r, θ):
+  L^T =
+  [[ 23.19  133.679   0.982 -14.607]
+   [  0.982   4.284  22.81  129.321]]
+  eig(A - LC) = -13.000+0.000j, -12.000+0.000j, -11.000+0.000j, -10.000+0.000j
+
+  Ackermann (y = r only):
+  L^T =
+  [[   46.      791.     -859.98  -2474.828]]
+  eig(A - LC) = -13.000+0.000j, -12.000+0.000j, -11.000+0.000j, -10.000+0.000j
+
+  Lyapunov/Bass β=10 (y = r, θ):
+  L^T =
+  [[ 39.847 395.421  -0.014 -19.196]
+   [ -0.014  18.335  40.153 404.602]]
+  eig(A - LC) = -23.670+0.000j, -20.000-3.670j, -20.000+3.670j, -16.330+0.000j
+
+Justification:
+  * Pole placement uses both outputs. With 2 outputs L is not unique; scipy's
+    robust (Kautsky-Nichols/Tits-Yang) algorithm picks the best-conditioned one.
+  * Ackermann's formula holds only for a single output, so it uses y = r (observable
+    from r alone, part k):  L = phi_d(A) Mo^{-1} [0 0 0 1]^T. The same 4 poles from
+    one sensor need much larger gains.
+  * Lyapunov (dual Bass): (A^T + bI)P + P(A^T + bI)^T = C^T C, L = P^-1 C^T.
+    eig(P) = [0.00012 0.00014 0.04667 0.05519] > 0, error-Lyapunov residual = 2.7e-15
+    -> Re eig(A - LC) < -10: guaranteed decay rate of the error.
+
+======================================================================
+(n) REDUCED-ORDER OBSERVER (only y = r measured)
+======================================================================
+Why r? It is the variable being controlled, a ball-position sensor is the usual
+measurement on a real rig, and the system is observable from r alone (part k).
+Partition x = [x_a | x_b] = [r | r_dot, theta, theta_dot]:
+  Aaa = 0,  Aab = [[1. 0. 0.]],  Aba^T = [  0.       0.     -25.8984],
+  Abb =
+  [[ 0.     -7.0071  0.    ]
+   [ 0.      0.      1.    ]
+   [ 0.      0.      0.    ]]
+  (Abb, Aab) observable? rank of its observability matrix = 3 (needs 3)
+Desired error poles [-10.0, -11.0, -12.0] -> Ke (pole placement) = [[  33.      -51.6616 -188.3792]]^T
+  check with Ackermann: max|Ke_place - Ke_acker| = 2.0e-10
+  eig(Abb - Ke Aab) = -12.000, -11.000, -10.000
+Observer:  z_dot = (Abb - Ke Aab) z + [(Abb - Ke Aab)Ke + Aba - Ke Aaa] y + (Bb - Ke Ba) u,
+           xhat_b = z + Ke y,   r_hat = y  (the measured state is not re-estimated).
+Only n - p = 3 states are estimated: fewer integrators, and r is exact (no lag), but
+the measured noise goes straight into the estimate through Ke y (see part o).
+
+======================================================================
+(o) OBSERVER PERFORMANCE WITH / WITHOUT MEASUREMENT NOISE
+======================================================================
+Noise: zero-mean Gaussian, sigma_r = 2 mm, sigma_theta = 1 mrad, sampled at 1 kHz.
+RMS estimation error over t in [1, 5] s (after convergence); t_conv = time at which
+the scaled error norm last exceeds 2 % of its peak (no-noise case).
+
+observer                         case     t_conv[s]        rms r        rms ṙ        rms θ       rms θ̇
+-------------------------------------------------------------------------------------------------------
+Full: pole placement (y=r,θ)     clean        0.525    2.132e-05    3.884e-05    1.698e-05    1.925e-04
+Full: pole placement (y=r,θ)     noisy                 2.614e-04    1.328e-03    1.183e-04    8.029e-04
+Full: Ackermann (y=r)            clean        0.777    4.194e-05    8.629e-04    1.622e-03    6.925e-03
+Full: Ackermann (y=r)            noisy                 3.800e-04    6.044e-03    6.585e-03    1.919e-02
+Full: Lyapunov (y=r,θ)           clean        0.326    2.102e-05    4.413e-05    8.866e-06    7.544e-05
+Full: Lyapunov (y=r,θ)           noisy                 3.288e-04    2.849e-03    1.505e-04    1.395e-03
+Reduced-order (y=r)              clean        1.684    0.000e+00    7.517e-04    1.157e-03    4.455e-03
+Reduced-order (y=r)              noisy                 2.003e-03    6.647e-02    1.044e-01    3.813e-01
+
+Observations:
+ * Without noise every observer converges (residual RMS error comes only from the
+   plant nonlinearity, since the observers use the linear model). The Lyapunov
+   observer is fastest because its poles lie beyond -β = -10.
+ * With noise there is a speed vs noise trade-off: high-gain observers (Lyapunov,
+   Ackermann from a single sensor, reduced-order) pass more noise into the velocity
+   estimates (ṙ, θ̇), because L multiplies the measurement noise.
+ * The reduced-order observer copies the noisy r straight into r̂ (no filtering) and
+   adds Ke·y to the other estimates, so it suffers most from r-noise. The full-order
+   observers low-pass filter the measurements through their own dynamics.
+ * Using both sensors (r and θ) gives the best estimates for the same pole locations,
+   because redundancy keeps the gains small.
+ * Even without noise, the single-sensor observers (Ackermann y=r, reduced-order) leave
+   a residual θ error about 100x larger than the two-sensor ones (~1e-3 vs ~1e-5 rad),
+   and the reduced-order observer has the longest t_conv. With θ unmeasured, the θ
+   estimate rests entirely on the LINEAR model, so the plant's nonlinearity
+   (sin θ, r θ_dot^2) shows up as a persistent bias. Fast poles do not remove a
+   model mismatch.
+ * Reduced-order noise amplification: the direct feed-through Ke·y with
+   |Ke| up to 188 turns 2 mm of r-noise into about 0.38 rad/s of θ̇-noise. Mitigations:
+   slower reduced-observer poles, low-pass filtering r, or using the θ encoder.

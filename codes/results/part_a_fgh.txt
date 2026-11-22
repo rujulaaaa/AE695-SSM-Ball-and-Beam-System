@@ -1,0 +1,82 @@
+======================================================================
+(f) TRANSFER FUNCTIONS  G(s) = C (sI - A)^{-1} B + D
+======================================================================
+det(sI - A) = -a*c + s**4
+G_r(s)     = R(s)/T(s)     = -a*beta/(-a*c + s**4)
+G_theta(s) = Theta(s)/T(s) = beta*s**2/(-a*c + s**4)
+Matrix form: G(s) = 1/(s^4 - a c) * [ -a*beta ; beta*s^2 ]
+
+Numeric r/tau    : num = [-168.1714]  den = [   1.       -0.       -0.        0.     -181.4738]
+    zeros = [],  poles = [-3.6703+0.j     -0.    +3.6703j -0.    -3.6703j  3.6703+0.j    ]
+Numeric theta/tau: num = [24. -0.  0.]  den = [   1.       -0.       -0.        0.     -181.4738]
+    zeros = [0. 0.],  poles = [-3.6703+0.j     -0.    +3.6703j -0.    -3.6703j  3.6703+0.j    ]
+
+Interpretation:
+ * Both channels share the 4 poles ±w, ±jw (w = 3.6703): no cancellation, so the
+   realization is minimal (also confirmed in part j).
+ * G_r has no finite zeros and a negative gain: positive torque tilts the beam so
+   the ball rolls towards -r. The relative degree is 4: torque -> angle -> ball
+   acceleration is a chain of 4 integrators.
+ * G_theta has a double zero at s = 0: a constant torque cannot hold a steady
+   beam angle without the ball moving, so the DC path is blocked.
+
+======================================================================
+(g) STATE TRANSITION MATRIX  Phi(t) = e^{At} = L^{-1}{(sI - A)^{-1}}
+======================================================================
+with w = (a c)^(1/4):
+  Phi[11] = cos(omega*t)/2 + cosh(omega*t)/2
+  Phi[12] = sin(omega*t)/(2*omega) + sinh(omega*t)/(2*omega)
+  Phi[13] = a*cos(omega*t)/(2*omega**2) - a*cosh(omega*t)/(2*omega**2)
+  Phi[14] = a*sin(omega*t)/(2*omega**3) - a*sinh(omega*t)/(2*omega**3)
+  Phi[21] = -a*c*sin(omega*t)/(2*omega**3) + a*c*sinh(omega*t)/(2*omega**3)
+  Phi[22] = cos(omega*t)/2 + cosh(omega*t)/2
+  Phi[23] = -a*sin(omega*t)/(2*omega) - a*sinh(omega*t)/(2*omega)
+  Phi[24] = a*cos(omega*t)/(2*omega**2) - a*cosh(omega*t)/(2*omega**2)
+  Phi[31] = c*cos(omega*t)/(2*omega**2) - c*cosh(omega*t)/(2*omega**2)
+  Phi[32] = c*sin(omega*t)/(2*omega**3) - c*sinh(omega*t)/(2*omega**3)
+  Phi[33] = cos(omega*t)/2 + cosh(omega*t)/2
+  Phi[34] = sin(omega*t)/(2*omega) + sinh(omega*t)/(2*omega)
+  Phi[41] = -c*sin(omega*t)/(2*omega) - c*sinh(omega*t)/(2*omega)
+  Phi[42] = c*cos(omega*t)/(2*omega**2) - c*cosh(omega*t)/(2*omega**2)
+  Phi[43] = -a*c*sin(omega*t)/(2*omega**3) + a*c*sinh(omega*t)/(2*omega**3)
+  Phi[44] = cos(omega*t)/2 + cosh(omega*t)/2
+
+[check] Phi(0) = I : True
+[check] max relative |Phi(t) - expm(At)| on [0, 1.5] s = 3.92e-13
+[check] max |dPhi/dt - A Phi| on [0, 1.5] s = 2.27e-13
+
+Analytical solution of the state equation:
+  dx(t) = Phi(t) dx(0) + integral_0^t Phi(t - s) B du(s) ds
+For a step du(t) = u0:  dx(t) = Phi(t) dx(0) + Gamma(t) B u0,
+  Gamma(t) B = integral_0^t Phi(s) B ds  (given below).
+  (Gamma B)[1] = -a*beta*(cos(omega*t) + cosh(omega*t) - 2)/(2*omega**4)
+  (Gamma B)[2] = a*beta*(sin(omega*t) - sinh(omega*t))/(2*omega**3)
+  (Gamma B)[3] = -beta*(cos(omega*t) - cosh(omega*t))/(2*omega**2)
+  (Gamma B)[4] = beta*(sin(omega*t) + sinh(omega*t))/(2*omega)
+
+======================================================================
+(h) ZERO-INPUT AND ZERO-STATE RESPONSES
+======================================================================
+Zero-input response  y_zi(t) = C Phi(t) dx(0):
+  r_zi(t)     = (a*omega*theta_0*(cos(omega*t) - cosh(omega*t)) + a*q_0*(sin(omega*t) - sinh(omega*t)) + omega**3*r_0*(cos(omega*t) + cosh(omega*t)) + omega**2*v_0*(sin(omega*t) + sinh(omega*t)))/(2*omega**3)
+  theta_zi(t) = (c*omega*r_0*(cos(omega*t) - cosh(omega*t)) + c*v_0*(sin(omega*t) - sinh(omega*t)) + omega**3*theta_0*(cos(omega*t) + cosh(omega*t)) + omega**2*q_0*(sin(omega*t) + sinh(omega*t)))/(2*omega**3)
+Zero-state response (step du = u0)  y_zs(t) = C Gamma(t) B u0:
+  r_zs(t)     = -a*beta*u_0*(cos(omega*t) + cosh(omega*t) - 2)/(2*omega**4)
+  theta_zs(t) = -beta*u_0*(cos(omega*t) - cosh(omega*t))/(2*omega**2)
+
+Example: dx(0) = [0.02, 0.0, 0.0, 0.0], du = 0.01 N m step on [0, 1.5] s
+[check] max |(ZIR + ZSR) - numerical simulation| = 1.55e-15  (superposition holds)
+
+Interpretation:
+ * ZIR: the free motion produced by the initial state alone. It contains cosh/sinh
+   (from the ±w real poles) and cos/sin (from the ±jw poles). The sinh/cosh part
+   grows like e^{wt}, so any small offset of the ball grows without bound.
+ * ZSR: the forced response from rest. A positive torque step tilts the beam
+   (theta > 0), so the ball accelerates towards -r and also diverges.
+ * Because the system is linear the total response is ZIR + ZSR, which is verified
+   numerically above.
+ * In this example the two parts OPPOSE each other on r: the ZIR pushes the ball
+   towards +r (r0 > 0) and the positive torque step pushes it towards -r. The step
+   is too small to win (cosh coefficients 0.01 vs -0.0046), so r still diverges.
+   It shows that well-timed torque can counteract the drift, which is what
+   feedback (part l) exploits.

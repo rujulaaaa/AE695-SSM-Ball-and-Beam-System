@@ -1,0 +1,58 @@
+======================================================================
+(p) COMBINED CONTROLLER-OBSERVER DESIGN (u = tau_e - K xhat)
+======================================================================
+K (pole placement) = [[-2.194  -1.0332  3.1146  0.6042]]
+
+Separation principle (linear analysis):
+  Full-order: eig of the 8x8 closed loop =
+    -13.000+0.000j, -12.000+0.000j, -11.000+0.000j, -10.000+0.000j, -6.000+0.000j, -5.000+0.000j, -1.750-1.785j, -1.750+1.785j
+    = eig(A-BK) ∪ eig(A-LC)?  max difference 1.1e-13
+  Reduced-order: eig of the 7x7 closed loop =
+    -12.000+0.000j, -11.000+0.000j, -10.000+0.000j, -6.000+0.000j, -5.000+0.000j, -1.750-1.785j, -1.750+1.785j
+    = eig(A-BK) ∪ eig(Abb-Ke Aab)?  max difference 2.1e-13
+  All eigenvalues lie in the open LHP -> both combined systems are asymptotically
+  stable (locally, for the nonlinear plant).
+
+Equivalent compensator (full-order): xhat_dot = (A - BK - LC) xhat + L y, u = -K xhat
+  compensator poles eig(A-BK-LC) = -17.923-13.313j, -17.923+13.313j, -13.518+0.000j, -11.137+0.000j
+  (The compensator itself may be open-loop unstable or not; what matters is the
+   combined closed loop above.)
+
+Nonlinear simulation, r(0) = 0.2 m (no noise):
+configuration                        t_s(2%) [s]  OS [%] max|θ| [deg]  peak|δτ|   ∫δτ² dt rms δτ (t>3s)
+-------------------------------------------------------------------------------------------------------
+FSFB, true state (reference)               2.748    3.31         3.24    0.4388    0.0357    6.6319e-04
+FSFB + full-order, x̂(0)=x_e               3.185   48.89        11.40    0.8063    0.0692    2.2636e-03
+FSFB + full-order, x̂(0) from y(0)         2.744    3.40         3.19    0.4388    0.0356    6.4528e-04
+FSFB + reduced-order observer              2.712    0.00         3.11    0.4388    0.0367    8.1326e-04
+
+Nonlinear simulation, r(0) = 0.2 m (with noise):
+configuration                        t_s(2%) [s]  OS [%] max|θ| [deg]  peak|δτ|   ∫δτ² dt rms δτ (t>3s)
+-------------------------------------------------------------------------------------------------------
+FSFB, true state (reference)               2.748    3.31         3.24    0.4388    0.0357    6.6319e-04
+FSFB + full-order, x̂(0)=x_e               3.198   48.69        11.41    0.8067    0.0692    2.8006e-03
+FSFB + full-order, x̂(0) from y(0)         2.764    3.31         3.19    0.4388    0.0356    1.9845e-03
+FSFB + reduced-order observer              2.716    0.38         3.34    2.4754    2.4771    6.4177e-01
+
+Observations:
+ * Both observer-based loops are asymptotically stable and regulate the ball. As the
+   separation principle predicts, the closed-loop poles are the controller poles plus
+   the observer poles, so K and L can be designed independently.
+ * Separation guarantees STABILITY, not identical transients. With the naive start
+   x̂(0) = x_e the full-order observer begins 0.2 m wrong in r. The large gain L
+   (L_21 ≈ 134) turns this into a big spurious ṙ̂ ('observer peaking'). The
+   controller reacts to the wrong estimate, giving about 49 % overshoot, about 11
+   degrees of tilt and twice the peak torque.
+ * Starting the observer from the first measurement (r̂(0) = y_r(0), θ̂(0) = y_θ(0))
+   removes this: the response is then almost the same as true-state feedback.
+ * The reduced-order observer uses r directly, so it has no initial r-error and,
+   without noise, matches true-state feedback closely.
+ * With noise the ranking reverses. The full-order observer filters the noise and
+   gives a smooth torque, while the reduced-order observer passes the r-noise
+   through Ke (|Ke| up to 188) and K to the actuator. The rms torque chatter after
+   settling is about 200-300x larger (0.64 vs 0.002-0.003 N m), and the control energy is
+   35-70x larger. That is unacceptable for a real motor without slower observer poles
+   or a pre-filter on r.
+ * The separation principle holds exactly only for the linear model. On the
+   nonlinear plant it is a local result, but it works well here because the
+   motion stays close to the equilibrium.

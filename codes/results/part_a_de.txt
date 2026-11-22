@@ -1,0 +1,46 @@
+======================================================================
+(d) OPEN-LOOP RESPONSE: NONLINEAR vs LINEARIZED
+======================================================================
+Input held at the equilibrium torque (du = 0) unless stated otherwise.
+Simulation stops when the ball reaches the end of the beam (|r| = L/2 = 0.5 m; dotted line).
+
+  r_e = 0, δr(0) = 1 cm                    leaves beam at  1.441 s | max rel. error r:   0.6%, theta:  18.8% | >10% at: never (until ball leaves) | theta_end = -44.0 deg
+  r_e = 0, δr(0) = 5 cm                    leaves beam at  1.015 s | max rel. error r:   0.7%, theta:  18.1% | >10% at: never (until ball leaves) | theta_end = -48.7 deg
+  r_e = 0, δθ(0) = 1°                      leaves beam at  1.469 s | max rel. error r:   0.9%, theta:  19.1% | >10% at: never (until ball leaves) | theta_end = +44.7 deg
+  r_e = 0.25 m, δr(0) = 1 cm               leaves beam at  1.307 s | max rel. error r:   1.2%, theta:  17.2% | >10% at: never (until ball leaves) | theta_end = -21.4 deg
+  r_e = 0, torque pulse 0.02 N·m × 0.1 s   leaves beam at  1.594 s | max rel. error r:   0.8%, theta:  19.2% | >10% at: never (until ball leaves) | theta_end = +43.9 deg
+
+Observations:
+  * Both models diverge, because the linear model has an eigenvalue in the RHP (part e).
+  * The linear model predicts the onset of instability (direction, growth rate) well.
+    Relative r-errors stay small because the divergence is dominated by the same
+    unstable eigenvalue. Discrepancies grow with the perturbation size and with time,
+    because sin(theta) ~ theta and the r*theta_dot^2, r*r_dot*theta_dot and m r^2
+    inertia terms stop being negligible as r and theta grow.
+  * The linear model has no |r| <= L/2 limit and keeps growing exponentially, while
+    the real ball simply falls off the beam.
+
+======================================================================
+(e) EIGENVALUES, EIGENVECTORS, STABILITY (r_e = 0)
+======================================================================
+Characteristic polynomial: det(sI - A) = [   1.       -0.       -0.        0.     -181.4738]
+  i.e. s^4 - a c = 0 with a c = 181.4738, so the |eigenvalues| are (a c)^(1/4) = 3.6703 rad/s
+
+Eigenvalues: 3.6703+0.0000j, 0.0000+3.6703j, 0.0000-3.6703j, -3.6703+0.0000j
+
+Eigenvectors (columns, scaled so that the r-component = 1):
+[[ 1.    -0.j      1.    -0.j      1.    +0.j      1.    +0.j    ]
+ [ 3.6703-0.j      0.    +3.6703j  0.    -3.6703j -3.6703+0.j    ]
+ [-1.9225-0.j      1.9225-0.j      1.9225+0.j     -1.9225+0.j    ]
+ [-7.0562-0.j      0.    +7.0562j  0.    -7.0562j  7.0562+0.j    ]]
+
+Mode interpretation:
+  lambda = +3.670 : divergent exponential mode (time constant 0.272 s)
+  lambda = -3.670 : decaying exponential mode
+  lambda = ±j3.670: undamped oscillation, period 1.712 s
+  Eigenvector of the unstable mode: theta = -(omega^2/a) r, i.e. the ball rolls
+  downhill while the beam keeps tilting further (the ball's weight makes the torque).
+=> One eigenvalue has Re > 0, so the equilibrium is UNSTABLE (in Lyapunov's sense and
+   also not BIBO stable). Feedback control is required.
+
+Unstable eigenvalue vs r_e: 3.2335 (at |r_e| = L/2) ... 3.6703 (at r_e = 0). Every equilibrium on the beam is unstable.

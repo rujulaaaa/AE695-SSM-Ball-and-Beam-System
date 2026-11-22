@@ -1,0 +1,17 @@
+% (f) transfer function matrix
+
+\mathbf G(s) = \left[\begin{matrix}- \frac{a \beta}{- a c + s^{4}}\\\frac{\beta s^{2}}{- a c + s^{4}}\end{matrix}\right]
+
+% (g) state transition matrix, \omega = (ac)^{1/4}
+
+\Phi(t) = \left[\begin{matrix}\frac{\cos{\left(\omega t \right)}}{2} + \frac{\cosh{\left(\omega t \right)}}{2} & \frac{\sin{\left(\omega t \right)}}{2 \omega} + \frac{\sinh{\left(\omega t \right)}}{2 \omega} & \frac{a \cos{\left(\omega t \right)}}{2 \omega^{2}} - \frac{a \cosh{\left(\omega t \right)}}{2 \omega^{2}} & \frac{a \sin{\left(\omega t \right)}}{2 \omega^{3}} - \frac{a \sinh{\left(\omega t \right)}}{2 \omega^{3}}\\- \frac{a c \sin{\left(\omega t \right)}}{2 \omega^{3}} + \frac{a c \sinh{\left(\omega t \right)}}{2 \omega^{3}} & \frac{\cos{\left(\omega t \right)}}{2} + \frac{\cosh{\left(\omega t \right)}}{2} & - \frac{a \sin{\left(\omega t \right)}}{2 \omega} - \frac{a \sinh{\left(\omega t \right)}}{2 \omega} & \frac{a \cos{\left(\omega t \right)}}{2 \omega^{2}} - \frac{a \cosh{\left(\omega t \right)}}{2 \omega^{2}}\\\frac{c \cos{\left(\omega t \right)}}{2 \omega^{2}} - \frac{c \cosh{\left(\omega t \right)}}{2 \omega^{2}} & \frac{c \sin{\left(\omega t \right)}}{2 \omega^{3}} - \frac{c \sinh{\left(\omega t \right)}}{2 \omega^{3}} & \frac{\cos{\left(\omega t \right)}}{2} + \frac{\cosh{\left(\omega t \right)}}{2} & \frac{\sin{\left(\omega t \right)}}{2 \omega} + \frac{\sinh{\left(\omega t \right)}}{2 \omega}\\- \frac{c \sin{\left(\omega t \right)}}{2 \omega} - \frac{c \sinh{\left(\omega t \right)}}{2 \omega} & \frac{c \cos{\left(\omega t \right)}}{2 \omega^{2}} - \frac{c \cosh{\left(\omega t \right)}}{2 \omega^{2}} & - \frac{a c \sin{\left(\omega t \right)}}{2 \omega^{3}} + \frac{a c \sinh{\left(\omega t \right)}}{2 \omega^{3}} & \frac{\cos{\left(\omega t \right)}}{2} + \frac{\cosh{\left(\omega t \right)}}{2}\end{matrix}\right]
+
+\Gamma(t)B = \int_0^t \Phi(\sigma)B\,d\sigma = \left[\begin{matrix}- \frac{a \beta \left(\cos{\left(\omega t \right)} + \cosh{\left(\omega t \right)} - 2\right)}{2 \omega^{4}}\\\frac{a \beta \left(\sin{\left(\omega t \right)} - \sinh{\left(\omega t \right)}\right)}{2 \omega^{3}}\\- \frac{\beta \left(\cos{\left(\omega t \right)} - \cosh{\left(\omega t \right)}\right)}{2 \omega^{2}}\\\frac{\beta \left(\sin{\left(\omega t \right)} + \sinh{\left(\omega t \right)}\right)}{2 \omega}\end{matrix}\right]
+
+% (h) zero-input response
+
+\mathbf y_{zi}(t) = \left[\begin{matrix}\frac{a \omega \theta_{0} \left(\cos{\left(\omega t \right)} - \cosh{\left(\omega t \right)}\right) + a q_{0} \left(\sin{\left(\omega t \right)} - \sinh{\left(\omega t \right)}\right) + \omega^{3} r_{0} \left(\cos{\left(\omega t \right)} + \cosh{\left(\omega t \right)}\right) + \omega^{2} v_{0} \left(\sin{\left(\omega t \right)} + \sinh{\left(\omega t \right)}\right)}{2 \omega^{3}}\\\frac{c \omega r_{0} \left(\cos{\left(\omega t \right)} - \cosh{\left(\omega t \right)}\right) + c v_{0} \left(\sin{\left(\omega t \right)} - \sinh{\left(\omega t \right)}\right) + \omega^{3} \theta_{0} \left(\cos{\left(\omega t \right)} + \cosh{\left(\omega t \right)}\right) + \omega^{2} q_{0} \left(\sin{\left(\omega t \right)} + \sinh{\left(\omega t \right)}\right)}{2 \omega^{3}}\end{matrix}\right]
+
+% (h) zero-state response to a step \delta\tau = u_0
+
+\mathbf y_{zs}(t) = \left[\begin{matrix}- \frac{a \beta u_{0} \left(\cos{\left(\omega t \right)} + \cosh{\left(\omega t \right)} - 2\right)}{2 \omega^{4}}\\- \frac{\beta u_{0} \left(\cos{\left(\omega t \right)} - \cosh{\left(\omega t \right)}\right)}{2 \omega^{2}}\end{matrix}\right]

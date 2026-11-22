@@ -1,0 +1,141 @@
+======================================================================
+(i) CANONICAL REALIZATIONS  (all equivalent to (A, B, C, D))
+======================================================================
+Characteristic polynomial coefficients [1 a1 a2 a3 a4] = [   1.       -0.       -0.        0.     -181.4738]
+
+Controllable canonical form (x = Tc z, Tc = Mc W):
+Tc =
+[[-168.1714    0.        0.        0.    ]
+ [   0.     -168.1714    0.        0.    ]
+ [  -0.       -0.       24.        0.    ]
+ [   0.       -0.       -0.       24.    ]]
+Ac =
+[[ -0.       1.       0.       0.    ]
+ [ -0.       0.       1.       0.    ]
+ [  0.       0.       0.       1.    ]
+ [181.4738  -0.       0.       0.    ]]
+Bc =
+[[0. 0. 0. 1.]]^T
+Cc =
+[[-168.1714    0.        0.        0.    ]
+ [  -0.       -0.       24.        0.    ]]
+  (row 1 of Cc = numerator of G_r = -a beta; row 2 = numerator of G_theta = beta s^2)
+[check] TF difference = 2.22e-16
+
+Observable canonical form w.r.t. output y1 = r  (x = Q z, Q = (W O)^-1):
+Ao =
+[[ -0.      -0.       0.     181.4738]
+ [  1.       0.       0.      -0.    ]
+ [  0.       1.       0.       0.    ]
+ [  0.       0.       1.       0.    ]]
+Bo =
+[[-168.1714    0.        0.        0.    ]]^T
+Co =
+[[ 0.      0.      0.      1.    ]
+ [ 0.     -0.1427 -0.     -0.    ]]
+[check] TF difference = 3.25e-15
+
+Observable canonical form w.r.t. output y2 = theta  (x = Q z, Q = (W O)^-1):
+Ao =
+[[ -0.      -0.       0.     181.4738]
+ [  1.       0.       0.      -0.    ]
+ [  0.       1.       0.       0.    ]
+ [  0.       0.       1.       0.    ]]
+Bo =
+[[-0. -0. 24.  0.]]^T
+Co =
+[[ 0.     -0.0386 -0.     -0.    ]
+ [ 0.      0.      0.      1.    ]]
+[check] TF difference = 1.80e-16
+
+(The system has 2 outputs, so a single observable companion form can be built
+ for one output at a time. Both are given; the system is observable from either.)
+
+Jordan (modal) canonical form: the eigenvalues are distinct, so every Jordan block
+is 1x1 and the Jordan form is diagonal (complex):
+J = diag(3.6703-0.0000j, -0.0000+3.6703j, -0.0000-3.6703j, -3.6703-0.0000j)
+Bj =
+[[7.0097-0.j 7.0097-0.j 7.0097+0.j 7.0097+0.j]]^T
+Cj =
+[[-0.1213+0.j      0.    -0.1213j  0.    +0.1213j  0.1213+0.j    ]
+ [ 0.2332+0.j      0.    -0.2332j  0.    +0.2332j -0.2332+0.j    ]]
+[check] off-diagonal max = 1.79e-15, TF difference = 2.37e-16
+  All entries of Bj are nonzero -> every mode is controllable (Gilbert test);
+  no column of Cj is zero -> every mode is observable.
+
+Real modal form (real Jordan form), T = [v(+w), v(-w), Re v(jw), Im v(jw)]:
+Am =
+[[ 3.6703 -0.      0.      0.    ]
+ [ 0.     -3.6703 -0.      0.    ]
+ [ 0.     -0.     -0.      3.6703]
+ [ 0.      0.     -3.6703  0.    ]]
+Bm =
+[[ 7.0097  7.0097 14.0194  0.    ]]^T
+Cm =
+[[-0.1213  0.1213  0.     -0.1213]
+ [ 0.2332 -0.2332  0.     -0.2332]]
+[check] TF difference = 3.55e-16
+
+======================================================================
+(j) CONTROLLABILITY AND OBSERVABILITY
+======================================================================
+Controllability matrix Mc = [B AB A^2B A^3B] =
+[[   0.        0.        0.     -168.1714]
+ [   0.        0.     -168.1714    0.    ]
+ [   0.       24.        0.        0.    ]
+ [  24.        0.        0.        0.    ]]
+  rank = 4 (n = 4),  singular values = [168.171 168.171  24.     24.   ]
+  => CONTROLLABLE. Controllability index mu = 4 (single input, so mu = n).
+
+Observability matrix Mo = [C; CA; CA^2; CA^3] (8 x 4) =
+[[  1.       0.       0.       0.    ]
+ [  0.       0.       1.       0.    ]
+ [  0.       1.       0.       0.    ]
+ [  0.       0.       0.       1.    ]
+ [  0.       0.      -7.0071   0.    ]
+ [-25.8984   0.       0.       0.    ]
+ [  0.       0.       0.      -7.0071]
+ [  0.     -25.8984   0.       0.    ]]
+  rank = 4,  singular values = [25.918 25.918  7.078  7.078]
+  => OBSERVABLE. Observability index nu = 2; Luenberger indices (r, theta) = (2, 2)
+  (C and CA already give r, theta, r_dot, theta_dot, i.e. the whole state.)
+
+PBH (Popov-Belevitch-Hautus) test at each eigenvalue:
+  lambda = +3.6703+0.0000j: rank[lI-A, B] = 4, rank[lI-A; C] = 4
+  lambda = +0.0000+3.6703j: rank[lI-A, B] = 4, rank[lI-A; C] = 4
+  lambda = +0.0000-3.6703j: rank[lI-A, B] = 4, rank[lI-A; C] = 4
+  lambda = -3.6703+0.0000j: rank[lI-A, B] = 4, rank[lI-A; C] = 4
+
+Finite-horizon Gramians on [0, 1.0] s (A is unstable, so the infinite-horizon
+Gramian does not exist):
+  Wc eigenvalues = [   0.1594    4.2335   44.2147 9710.4506] (all > 0 -> controllable)
+  Wo eigenvalues = [ 0.0055  0.0591  0.4584 88.71  ] (all > 0 -> observable)
+  [check] Van Loan vs quadrature: 1.62e-09
+  The spread of the Wc eigenvalues shows some directions need far more control energy.
+
+======================================================================
+(k) PARTIAL CONTROLLABILITY AND OBSERVABILITY
+======================================================================
+Inputs: the system has ONE input (beam torque). Removing it leaves B = 0, so
+rank Mc = 0 and no state is controllable. With a single actuator the 'absence of
+selected inputs' study is trivial; the only nontrivial input set is {tau}, which is
+fully controllable (part j).
+
+Outputs: observability with subsets of outputs (and, for interest, with any
+single state as the only measurement):
+  y = r only (C row 1)      : rank = 4, observable = True, index = 4, cond(O) = 7.01e+00
+  y = theta only (C row 2)  : rank = 4, observable = True, index = 4, cond(O) = 2.59e+01
+  y = r_dot only            : rank = 4, observable = True, index = 4, cond(O) = 1.81e+02
+  y = theta_dot only        : rank = 4, observable = True, index = 4, cond(O) = 1.81e+02
+  y = [r, theta] (both)     : rank = 4, observable = True, index = 2, cond(O) = 3.66e+00
+  no output                 : rank = 0, observable = False
+
+Interpretation: the states form a coupled chain r -> r_dot -> theta -> theta_dot -> r
+(r_ddot = -a theta, theta_ddot = -c r + beta tau). Any single state therefore reaches
+the whole chain through differentiation, so ANY single measurement keeps the system
+observable. Losing one sensor removes redundancy (the index rises from 2 to 4) and
+worsens conditioning, but not observability. This justifies the reduced-order
+observer of part (n), which uses only y = r.
+
+Note: c = m g/(J + m r_e^2) and a = 5g/7 are nonzero at every equilibrium, so these
+conclusions hold for all operating points (they would fail only if g = 0).

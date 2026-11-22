@@ -1,0 +1,89 @@
+======================================================================
+(a) STATE-SPACE FORMULATION
+======================================================================
+x = [r, r_dot, theta, theta_dot]^T,  u = tau,  y = [r, theta]^T
+
+Lagrangian  L = T - V:
+  T = J*Derivative(theta(t), t)**2/2 + J_b*Derivative(r(t), t)**2/(2*R**2) + m*(r(t)**2*Derivative(theta(t), t)**2 + Derivative(r(t), t)**2)/2
+  V = g*m*r(t)*sin(theta(t))
+
+Euler-Lagrange equations (each = 0):
+  r     : (J_b*Derivative(r(t), (t, 2)) + R**2*m*(g*sin(theta(t)) - r(t)*Derivative(theta(t), t)**2 + Derivative(r(t), (t, 2))))/R**2
+  theta : J*Derivative(theta(t), (t, 2)) + g*m*r(t)*cos(theta(t)) + m*r(t)**2*Derivative(theta(t), (t, 2)) + 2*m*r(t)*Derivative(r(t), t)*Derivative(theta(t), t) - tau
+
+x_dot = f(x, u):
+  x1_dot = x2
+  x2_dot = R**2*m*(-g*sin(x3) + x1*x4**2)/(J_b + R**2*m)
+  x3_dot = x4
+  x4_dot = (-g*m*x1*cos(x3) - 2*m*x1*x2*x4 + tau)/(J + m*x1**2)
+y = h(x, u):
+  y1 = x1
+  y2 = x3
+
+[check] max |f_sympy - f_numpy| over 20 random points = 1.78e-14
+
+======================================================================
+(b) EQUILIBRIUM POINTS
+======================================================================
+Solving f(x, u) = 0 for (r_dot, theta_dot, theta, tau) with r free:
+  {tau: -g*m*x1, x2: 0, x3: pi, x4: 0}
+  {tau: g*m*x1, x2: 0, x3: 0, x4: 0}
+
+theta = pi is an upside-down beam (the ball cannot stay on it), so it is excluded.
+Physical equilibria:  x_e = [r_e, 0, 0, 0],  tau_e = m g r_e,  |r_e| <= L/2
+=> there is a continuum of equilibria, one for each ball position on the beam.
+   with our parameters: tau_e = 1.0791 * r_e  [N m],  |tau_e| <= 0.5396 N m
+[check] r_e = +0.00:  |f(x_e, u_e)| = 0.00e+00
+[check] r_e = +0.25:  |f(x_e, u_e)| = 0.00e+00
+
+======================================================================
+(c) LINEARIZATION  (first-order Taylor expansion)
+======================================================================
+delta_x_dot = A delta_x + B delta_u,   delta_y = C delta_x + D delta_u
+delta_x = x - x_e,  delta_u = u - u_e
+
+General equilibrium r_e (symbolic):
+  A = [[0, 1, 0, 0], [0, 0, -R**2*g*m/(J_b + R**2*m), 0], [0, 0, 0, 1], [-g*m/(J + m*r_e**2), 0, 0, 0]]
+  B = [[0], [0], [0], [1/(J + m*r_e**2)]]
+  C = [[1, 0, 0, 0], [0, 0, 1, 0]]
+  D = [[0], [0]]
+
+Numeric model at r_e = 0.0 m:
+A =
+[[  0.       1.       0.       0.    ]
+ [  0.       0.      -7.0071   0.    ]
+ [  0.       0.       0.       1.    ]
+ [-25.8984   0.       0.       0.    ]]
+B =
+[[ 0.]
+ [ 0.]
+ [ 0.]
+ [24.]]
+C =
+[[1. 0. 0. 0.]
+ [0. 0. 1. 0.]]
+D =
+[[0.]
+ [0.]]
+[check] max|A - A_fd| = 6.84e-11, max|B - B_fd| = 0.00e+00
+
+Numeric model at r_e = 0.25 m:
+A =
+[[  0.       1.       0.       0.    ]
+ [  0.       0.      -7.0071   0.    ]
+ [  0.       0.       0.       1.    ]
+ [-22.2304   0.       0.       0.    ]]
+B =
+[[ 0.    ]
+ [ 0.    ]
+ [ 0.    ]
+ [20.6009]]
+C =
+[[1. 0. 0. 0.]
+ [0. 0. 1. 0.]]
+D =
+[[0.]
+ [0.]]
+[check] max|A - A_fd| = 1.16e-10, max|B - B_fd| = 5.51e-10
+
+Parameters used: m=0.11, R=0.015, J_b=9.900e-06, M=0.5, L=1.0, J=0.0417, g=9.81
